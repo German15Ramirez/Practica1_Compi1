@@ -1,4 +1,4 @@
-package source;
+package source.backend;
 
 import source.frontend.Principal;
 

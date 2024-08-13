@@ -5,53 +5,46 @@
 
 package source.frontend;
 
+import source.backend.herramientas.NumeracionFilas;
+import source.backend.herramientas.OpenFile;
+import source.backend.herramientas.SaveFile;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.GraphicsEnvironment;
 import java.awt.Image;
-import java.awt.Insets;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.*;
+
+import static jdk.jfr.consumer.EventStream.openFile;
 
 /**
  *
  * @author alex
  */
 public class Principal extends javax.swing.JFrame {
-    
-    private Image imagenFondo = new ImageIcon(getClass().getResource("/imagenes/logo.jpg")).getImage();
+    JTextPane panelBlanco = new JTextPane();
+    private Image imagenFondo = new ImageIcon(getClass().getResource("/imagenes/logo.png")).getImage();
     private JLabel relojLabel;
     private JPanel contenedorPanel;
     private boolean relojActivo = true;
     private Dimension tamañoPanelFondo;
     private String titulo = "GRAFICADOR DE GEOMETRIA";
+    private NumeracionFilas numerosFilaC1;
+    private JScrollPane jScrollPane1;
 
     /** Creates new form Principal */
     public Principal() {
         initComponents();
         initUI();
         iniciarReloj();
-        
     }
-    
+
     private void initUI() {
         this.setTitle(titulo);
         this.setLocationRelativeTo(null);
@@ -61,12 +54,10 @@ public class Principal extends javax.swing.JFrame {
         contenedorPanel.setLayout(new BorderLayout());
 
         // Obtenemos el tamaño de la pantalla
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration());
-        screenSize.width -= (insets.left + insets.right);
-        screenSize.height -= (insets.top + insets.bottom);
-        this.setBounds(0, 0, screenSize.width, screenSize.height);
-        tamañoPanelFondo = new Dimension(screenSize.width, screenSize.height);
+        int alto = 900;
+        int ancho = 1000;
+        this.setBounds(0, 0, ancho, alto);
+        tamañoPanelFondo = new Dimension(ancho, alto);
 
         setContentPane(new JPanel() {
             @Override
@@ -86,122 +77,110 @@ public class Principal extends javax.swing.JFrame {
 
         addMessageLabel(menuPrincipal);
         addClockLabel(menuPrincipal);
+
+        // Agregamos el panel de escritura dentro de un JScrollPane
+        panelBlanco.setBackground(Color.WHITE);
+        panelBlanco.setPreferredSize(new Dimension(900, 800));
+        Font fuenteTexto = new Font("SansSerif", Font.PLAIN, 16);
+        panelBlanco.setFont(fuenteTexto);
+
+        // Creación del JScrollPane
+        jScrollPane1 = new JScrollPane(panelBlanco);
+
+        // Numeración de filas
+        numerosFilaC1 = new NumeracionFilas(panelBlanco);
+        jScrollPane1.setRowHeaderView(numerosFilaC1);
+
+        // Añadir JScrollPane al contenedor principal
+        contenedorPanel.add(jScrollPane1, BorderLayout.CENTER);
+
+        JPanel panelInferior = new JPanel(new BorderLayout());
+
+        // JLabel en la parte inferior
+        JLabel labelInferiorIzquierda = new JLabel("Información adicional");
+        labelInferiorIzquierda.setFont(new Font("Bitstream Charter", Font.BOLD, 20)); // Texto más grande
+        labelInferiorIzquierda.setForeground(new Color(0, 102, 204)); // Color azul oscuro
+        panelInferior.add(labelInferiorIzquierda, BorderLayout.WEST);
+
+        // Panel para contener los botones en la parte inferior derecha
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        // Crear botones
+        JButton botonCompilar = new JButton("Compilar");
+        JButton botonAnimar = new JButton("Animar");
+
+        // Establecer fuente más grande para los botones
+        Font fuenteBotones = new Font("Bitstream Charter", Font.BOLD, 20);
+        botonCompilar.setFont(fuenteBotones);
+        botonAnimar.setFont(fuenteBotones);
+
+        // Establecer colores de fondo para los botones
+        botonCompilar.setBackground(new Color(0, 128, 0)); // Verde
+        botonCompilar.setForeground(Color.WHITE); // Texto blanco
+        botonAnimar.setBackground(new Color(71, 97, 219)); // Azul suave
+        botonAnimar.setForeground(Color.BLACK); // Texto negro
+
+        // Añadir botones al panel de botones
+        panelBotones.add(botonCompilar);
+        panelBotones.add(botonAnimar);
+
+        // Añadir panel de botones al panel inferior
+        panelInferior.add(panelBotones, BorderLayout.EAST);
+
+        // Añadimos el panel inferior al contenido
+        getContentPane().add(panelInferior, BorderLayout.SOUTH);
     }
 
+
     private void addMenus(JMenuBar menuPrincipal) {
-        JMenu menuLibros = new JMenu("Libros");
-        JMenu menuUsuarios = new JMenu("Usuarios");
-        JMenu menuRegistros = new JMenu("Registros");
+        JMenu menuRegistros = new JMenu("Archivo");
         JMenu menuReportes = new JMenu("Reportes");
-        menuPrincipal.add(menuLibros);
-        menuPrincipal.add(menuUsuarios);
         menuPrincipal.add(menuRegistros);
         menuPrincipal.add(menuReportes);
         //agregar iconos a cada menu
-        ImageIcon iconoAbrirRegistros = new ImageIcon(getClass().getResource("/imagenes/abrir_reportes_icono.png"));
+        ImageIcon iconoAbrirRegistros = new ImageIcon(getClass().getResource("/imagenes/open_file.png"));
         Image imageAbrirRegistros = iconoAbrirRegistros.getImage();
         Image newImageAbrirRegistros = imageAbrirRegistros.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
         iconoAbrirRegistros = new ImageIcon(newImageAbrirRegistros);
-        ImageIcon iconoLibros = new ImageIcon(getClass().getResource("/imagenes/libros_icono.png"));
-        Image image = iconoLibros.getImage();
-        Image newImage = image.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
-        iconoLibros = new ImageIcon(newImage);
-        ImageIcon iconoUsuario = new ImageIcon(getClass().getResource("/imagenes/usuarios_icono.png"));
-        Image imageUsuarios = iconoUsuario.getImage();
-        Image newImageUsuarios = imageUsuarios.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
-        iconoUsuario = new ImageIcon(newImageUsuarios);
-        ImageIcon iconoUsuarioNuevo = new ImageIcon(getClass().getResource("/imagenes/agregar_usuarios_icono.png"));
-        Image imageUsuariosNuevo = iconoUsuarioNuevo.getImage();
-        Image newImageUsuariosNuevos = imageUsuariosNuevo.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
-        iconoUsuarioNuevo = new ImageIcon(newImageUsuariosNuevos);
         ImageIcon iconoReportes = new ImageIcon(getClass().getResource("/imagenes/reportes_icono.png"));
         Image imageReportes = iconoReportes.getImage();
         Image newImageReportes = imageReportes.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
         iconoReportes = new ImageIcon(newImageReportes);
-        ImageIcon iconoListas = new ImageIcon(getClass().getResource("/imagenes/listas_icono.png"));
+        ImageIcon iconoListas = new ImageIcon(getClass().getResource("/imagenes/save_file.png"));
         Image imageListas = iconoListas.getImage();
         Image newImageListas = imageListas.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
         iconoListas = new ImageIcon(newImageListas);
+        ImageIcon iconoNuevo = new ImageIcon(getClass().getResource("/imagenes/nuevo_archivo.png"));
+        Image imageNuevo = iconoNuevo.getImage();
+        Image newImageNuevo = imageNuevo.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
+        iconoNuevo = new ImageIcon(newImageNuevo);
         ImageIcon iconoErrores = new ImageIcon(getClass().getResource("/imagenes/errores_logo.png"));
         Image imageErrores = iconoErrores.getImage();
         Image newImageErrores = imageErrores.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
         iconoErrores = new ImageIcon(newImageErrores);
         //creacion de items en cada menu
-        //items libros
-        JMenuItem itemLibros01 = new JMenuItem("Nuevo Libro", iconoLibros);
-        JMenuItem itemLibros02 = new JMenuItem("Editar Libro", iconoLibros);
-        JMenuItem itemLibros03 = new JMenuItem("Prestar Libro", iconoLibros);
-        JMenuItem itemLibros04 = new JMenuItem("Devolver Libro", iconoLibros);
-        //items usuarios
-        JMenuItem itemNuevoEstudiante = new JMenuItem("Nuevo Estudiante", iconoUsuarioNuevo);
-        JMenuItem itemUsuarios02 = new JMenuItem("Editar Estudiante", iconoUsuario);
         //items registros
-        JMenuItem itemImportarRegistros = new JMenuItem("Importar Registros", iconoAbrirRegistros);
-        JMenuItem itemListaEstudiantes = new JMenuItem("Listado de Estudiantes", iconoListas);
-        JMenuItem itemListaLibros = new JMenuItem("Listado de Libros", iconoListas);
-        JMenuItem itemListaPrestamos = new JMenuItem("Listado de Prestamos", iconoListas);
+        JMenuItem itemImportarRegistros = new JMenuItem("Cargar Archivo", iconoAbrirRegistros);
+        // Añadir ActionListener para abrir archivo
+        itemImportarRegistros.addActionListener(e -> OpenFile.openFileAndSetText(panelBlanco));
+        JMenuItem itemGuardarArchivos = new JMenuItem("Guardar Archivo", iconoListas);
+        itemGuardarArchivos.addActionListener(e -> SaveFile.saveTextToFile(panelBlanco));
+        JMenuItem itemListaLibros = new JMenuItem("Nuevo Archivo", iconoNuevo);
         //items reportes
-        JMenuItem itemPrestamosMismoDia = new JMenuItem("Prestamos a Devolver Este Día", iconoReportes);
-        JMenuItem itemPrestamosMora = new JMenuItem("Prestamos con Mora", iconoReportes);
-        JMenuItem itemIngresosIntervalo = new JMenuItem("Ingresos en un Intervalo de Tiempo", iconoReportes);
-        JMenuItem itemPrestamosPorEstudiante = new JMenuItem("Prestamos Hechos por Estudiante", iconoReportes);
-        JMenuItem itemPrestamosVigentesPorEstudiante = new JMenuItem("Prestamos Vigentes de Cada Estudiante", iconoReportes);
-        JMenuItem itemPrestamosPorCarrera = new JMenuItem("Prestamos Realizados por Carrera en un Intervalo de Tiempo", iconoReportes);
-        JMenuItem itemDevolucionesConcluidas = new JMenuItem("Devoluciones Concluidas", iconoReportes);
-        JMenuItem itemErroresEncontrados = new JMenuItem("Errores Encontrados en la Importación", iconoErrores);
-
-        //agregar al menu
-        menuLibros.add(itemLibros01);
-        menuLibros.add(itemLibros02);
-        menuLibros.add(itemLibros03);
-        menuLibros.add(itemLibros04);
-        menuUsuarios.add(itemNuevoEstudiante);
-        menuUsuarios.add(itemUsuarios02);
+        JMenuItem itemPrestamosMismoDia = new JMenuItem("Ocurrencias de Operadores Matemáticos", iconoReportes);
+        JMenuItem itemPrestamosMora = new JMenuItem("Colores Usados", iconoReportes);
+        JMenuItem itemIngresosIntervalo = new JMenuItem("Objetos Usados", iconoReportes);
+        JMenuItem itemPrestamosPorEstudiante = new JMenuItem("Animaciones Usadas", iconoReportes);
+        JMenuItem itemPrestamosVigentesPorEstudiante = new JMenuItem("Errores de Compilación", iconoErrores);
+        //añadir al menu
         menuRegistros.add(itemImportarRegistros);
-        menuRegistros.add(itemListaEstudiantes);
+        menuRegistros.add(itemGuardarArchivos);
         menuRegistros.add(itemListaLibros);
-        menuRegistros.add(itemListaPrestamos);
         menuReportes.add(itemPrestamosMismoDia);
         menuReportes.add(itemPrestamosMora);
         menuReportes.add(itemIngresosIntervalo);
         menuReportes.add(itemPrestamosPorEstudiante);
         menuReportes.add(itemPrestamosVigentesPorEstudiante);
-        menuReportes.add(itemPrestamosPorCarrera);
-        menuReportes.add(itemDevolucionesConcluidas);
-        menuReportes.add(itemErroresEncontrados);
-        //ACCIONES
-        //Importar registros
-        itemImportarRegistros.addActionListener((ActionEvent e) -> {
-            JFileChooser chooser = new JFileChooser();
-            // Establecer el tamaño del cuadro de diálogo
-            chooser.setPreferredSize(new Dimension(800, 600)); // tamaño buscador
-            FileNameExtensionFilter filtro = new FileNameExtensionFilter("Archivos de texto (*.txt)", "txt");
-            chooser.setFileFilter(filtro);
-            int seleccion = chooser.showOpenDialog(this);
-
-            if (seleccion == JFileChooser.APPROVE_OPTION) {
-                String nombreArchivo = chooser.getSelectedFile().getName();
-                String extension = nombreArchivo.substring(nombreArchivo.lastIndexOf('.') + 1).toLowerCase();
-
-                if (extension.equals("txt")) {
-                    String rutaArchivo = chooser.getSelectedFile().getAbsolutePath();
-//                    ImportarDatos importar = new ImportarDatos();
-                    int opcion = JOptionPane.showConfirmDialog(this, "Se ha encontrado el archivo \"" + chooser.getSelectedFile().getName() + "\"\n¿Desea importar los datos?", "IMPORTAR DATOS", JOptionPane.YES_NO_OPTION);
-                    if (opcion == 0) {
-//                        importar.abrirArchivo(rutaArchivo);
-//                        FuncionamientoAplicacion.guardarSerializableEstudiantes();
-//                        FuncionamientoAplicacion.guardarSerializableLibros();
-//                        FuncionamientoAplicacion.guardarSerializablePrestamos();
-                        JOptionPane.showMessageDialog(this, "Importación finalizada.\nConsulte los registros para más información");
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Importación cancelada.");
-                    }
-
-                } else {
-                    JOptionPane.showMessageDialog(this, "Solo se permiten archivos .txt", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
 
         //personalizar menu
         Font menuFont = new Font("Bitstream Charter", Font.BOLD, 20);
@@ -234,7 +213,7 @@ public class Principal extends javax.swing.JFrame {
     }
 
     private void addMessageLabel(JMenuBar menuPrincipal) {
-        JLabel mensajeLabel = new JLabel("¿QUÉ TE GUSTARÍA HACER HOY?");
+        JLabel mensajeLabel = new JLabel("GRAFICADOR DE GEOMETRIA");
         mensajeLabel.setFont(new Font("Bitstream Charter", Font.BOLD, 25));
         mensajeLabel.setForeground(Color.BLUE);
         mensajeLabel.setBackground(new Color(251, 250, 248));
