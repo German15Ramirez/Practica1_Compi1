@@ -11,78 +11,57 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 public class Numeracion extends JPanel
-        implements CaretListener, DocumentListener, PropertyChangeListener{
+        implements CaretListener, DocumentListener {
     private JTextPane jTextPane;
     private JLabel jLabel;
     private int lineNumber;
     private int columnNumber;
+
     public Numeracion(JTextPane jTextPane, JLabel jLabel) {
         this.jTextPane = jTextPane;
         this.jLabel = jLabel;
 
-        jTextPane.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
-                updateColumnNumbers();
-            }
+        if (this.jLabel == null) {
+            throw new IllegalArgumentException("jLabel cannot be null");
+        }
 
-            public void removeUpdate(DocumentEvent e) {
-                updateColumnNumbers();
-            }
-
-            public void changedUpdate(DocumentEvent e) {
-                updateColumnNumbers();
-            }
-        });
-
-        jTextPane.addCaretListener(e -> updateColumnNumbers());
+        jTextPane.getDocument().addDocumentListener(this);
+        jTextPane.addCaretListener(this);
         updateColumnNumbers();
     }
 
     private void updateColumnNumbers() {
-        int caretPosition = jTextPane.getCaretPosition();
+        if (jLabel == null) {
+            return; // No se puede actualizar si jLabel es null
+        }
 
+        int caretPosition = jTextPane.getCaretPosition();
         int caretLine = jTextPane.getDocument().getDefaultRootElement().getElementIndex(caretPosition);
         int startOffset = jTextPane.getDocument().getDefaultRootElement().getElement(caretLine).getStartOffset();
         caretLine++;
         lineNumber = caretLine;
         columnNumber = caretPosition - startOffset;
 
-        jLabel.setText("Columna No.: " + columnNumber + " Fila No.: "+ lineNumber);
-
-    }
-
-    public int getLineNumber() {
-        return lineNumber;
-    }
-
-    public int getColumnNumber() {
-        return columnNumber;
+        jLabel.setText("Columna No.: " + columnNumber + " Fila No.: " + lineNumber);
     }
 
     @Override
-    public void caretUpdate(CaretEvent ce) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void caretUpdate(CaretEvent e) {
+        updateColumnNumbers();
     }
 
     @Override
-    public void insertUpdate(DocumentEvent de) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void insertUpdate(DocumentEvent e) {
+        updateColumnNumbers();
     }
 
     @Override
-    public void removeUpdate(DocumentEvent de) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void removeUpdate(DocumentEvent e) {
+        updateColumnNumbers();
     }
 
     @Override
-    public void changedUpdate(DocumentEvent de) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent pce) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void changedUpdate(DocumentEvent e) {
+        updateColumnNumbers();
     }
 }
-
-

@@ -5,30 +5,20 @@
 
 package source.frontend;
 
-import source.backend.herramientas.NumeracionFilas;
-import source.backend.herramientas.OpenFile;
-import source.backend.herramientas.SaveFile;
+import source.backend.herramientas.*;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.awt.*;
+import java.text.*;
+import java.util.*;
 import javax.swing.*;
 
-import static jdk.jfr.consumer.EventStream.openFile;
 
 /**
  *
  * @author alex
  */
 public class Principal extends javax.swing.JFrame {
-    JTextPane panelBlanco = new JTextPane();
+    private JTextPane panelBlanco;
     private Image imagenFondo = new ImageIcon(getClass().getResource("/imagenes/logo.png")).getImage();
     private JLabel relojLabel;
     private JPanel contenedorPanel;
@@ -37,6 +27,9 @@ public class Principal extends javax.swing.JFrame {
     private String titulo = "GRAFICADOR DE GEOMETRIA";
     private NumeracionFilas numerosFilaC1;
     private JScrollPane jScrollPane1;
+    private Numeracion numeracion;
+    private JLabel infoLabel;
+    private JLabel labelInferiorIzquierda;
 
     /** Creates new form Principal */
     public Principal() {
@@ -46,17 +39,15 @@ public class Principal extends javax.swing.JFrame {
     }
 
     private void initUI() {
-        this.setTitle(titulo);
-        this.setLocationRelativeTo(null);
-        this.setResizable(false);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        contenedorPanel = new JPanel();
-        contenedorPanel.setLayout(new BorderLayout());
+        setTitle(titulo);
+        setLocationRelativeTo(null);
+        setResizable(false);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        contenedorPanel = new JPanel(new BorderLayout());
 
-        // Obtenemos el tamaño de la pantalla
         int alto = 900;
         int ancho = 1000;
-        this.setBounds(0, 0, ancho, alto);
+        setBounds(0, 0, ancho, alto);
         tamañoPanelFondo = new Dimension(ancho, alto);
 
         setContentPane(new JPanel() {
@@ -68,121 +59,98 @@ public class Principal extends javax.swing.JFrame {
         });
 
         getContentPane().add(contenedorPanel, BorderLayout.CENTER);
-        contenedorPanel.removeAll();
 
         JMenuBar menuPrincipal = new JMenuBar();
         addMenus(menuPrincipal);
-
         setJMenuBar(menuPrincipal);
 
         addMessageLabel(menuPrincipal);
         addClockLabel(menuPrincipal);
 
-        // Agregamos el panel de escritura dentro de un JScrollPane
+        panelBlanco = new JTextPane();
         panelBlanco.setBackground(Color.WHITE);
         panelBlanco.setPreferredSize(new Dimension(900, 800));
-        Font fuenteTexto = new Font("SansSerif", Font.PLAIN, 16);
-        panelBlanco.setFont(fuenteTexto);
+        panelBlanco.setFont(new Font("SansSerif", Font.PLAIN, 16));
 
-        // Creación del JScrollPane
         jScrollPane1 = new JScrollPane(panelBlanco);
-
-        // Numeración de filas
         numerosFilaC1 = new NumeracionFilas(panelBlanco);
         jScrollPane1.setRowHeaderView(numerosFilaC1);
-
-        // Añadir JScrollPane al contenedor principal
         contenedorPanel.add(jScrollPane1, BorderLayout.CENTER);
 
         JPanel panelInferior = new JPanel(new BorderLayout());
 
-        // JLabel en la parte inferior
-        JLabel labelInferiorIzquierda = new JLabel("Información adicional");
-        labelInferiorIzquierda.setFont(new Font("Bitstream Charter", Font.BOLD, 20)); // Texto más grande
-        labelInferiorIzquierda.setForeground(new Color(0, 102, 204)); // Color azul oscuro
+        // JLabel a la izquierda
+        labelInferiorIzquierda = new JLabel("");
+        labelInferiorIzquierda.setFont(new Font("Bitstream Charter", Font.BOLD, 20));
+        labelInferiorIzquierda.setForeground(new Color(0, 102, 204));
         panelInferior.add(labelInferiorIzquierda, BorderLayout.WEST);
 
-        // Panel para contener los botones en la parte inferior derecha
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.LEFT));
-
-        // Crear botones
+        // Panel para los botones
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton botonCompilar = new JButton("Compilar");
         JButton botonAnimar = new JButton("Animar");
-
-        // Establecer fuente más grande para los botones
         Font fuenteBotones = new Font("Bitstream Charter", Font.BOLD, 20);
         botonCompilar.setFont(fuenteBotones);
         botonAnimar.setFont(fuenteBotones);
-
-        // Establecer colores de fondo para los botones
-        botonCompilar.setBackground(new Color(0, 128, 0)); // Verde
-        botonCompilar.setForeground(Color.WHITE); // Texto blanco
-        botonAnimar.setBackground(new Color(71, 97, 219)); // Azul suave
-        botonAnimar.setForeground(Color.BLACK); // Texto negro
-
-        // Añadir botones al panel de botones
+        botonCompilar.setBackground(new Color(0, 128, 0));
+        botonCompilar.setForeground(Color.WHITE);
+        botonAnimar.setBackground(new Color(71, 97, 219));
+        botonAnimar.setForeground(Color.BLACK);
         panelBotones.add(botonCompilar);
         panelBotones.add(botonAnimar);
 
-        // Añadir panel de botones al panel inferior
         panelInferior.add(panelBotones, BorderLayout.EAST);
 
-        // Añadimos el panel inferior al contenido
+        infoLabel = new JLabel("Columna No.: 0 Fila No.: 0");
+        infoLabel.setFont(new Font("Bitstream Charter", Font.BOLD, 20));
+        infoLabel.setForeground(new Color(0, 102, 204));
+        numeracion = new Numeracion(panelBlanco, infoLabel);
+        panelInferior.add(infoLabel, BorderLayout.CENTER);
+
         getContentPane().add(panelInferior, BorderLayout.SOUTH);
     }
-
 
     private void addMenus(JMenuBar menuPrincipal) {
         JMenu menuRegistros = new JMenu("Archivo");
         JMenu menuReportes = new JMenu("Reportes");
         menuPrincipal.add(menuRegistros);
         menuPrincipal.add(menuReportes);
-        //agregar iconos a cada menu
-        ImageIcon iconoAbrirRegistros = new ImageIcon(getClass().getResource("/imagenes/open_file.png"));
-        Image imageAbrirRegistros = iconoAbrirRegistros.getImage();
-        Image newImageAbrirRegistros = imageAbrirRegistros.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
-        iconoAbrirRegistros = new ImageIcon(newImageAbrirRegistros);
-        ImageIcon iconoReportes = new ImageIcon(getClass().getResource("/imagenes/reportes_icono.png"));
-        Image imageReportes = iconoReportes.getImage();
-        Image newImageReportes = imageReportes.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
-        iconoReportes = new ImageIcon(newImageReportes);
-        ImageIcon iconoListas = new ImageIcon(getClass().getResource("/imagenes/save_file.png"));
-        Image imageListas = iconoListas.getImage();
-        Image newImageListas = imageListas.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
-        iconoListas = new ImageIcon(newImageListas);
-        ImageIcon iconoNuevo = new ImageIcon(getClass().getResource("/imagenes/nuevo_archivo.png"));
-        Image imageNuevo = iconoNuevo.getImage();
-        Image newImageNuevo = imageNuevo.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
-        iconoNuevo = new ImageIcon(newImageNuevo);
-        ImageIcon iconoErrores = new ImageIcon(getClass().getResource("/imagenes/errores_logo.png"));
-        Image imageErrores = iconoErrores.getImage();
-        Image newImageErrores = imageErrores.getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
-        iconoErrores = new ImageIcon(newImageErrores);
-        //creacion de items en cada menu
-        //items registros
-        JMenuItem itemImportarRegistros = new JMenuItem("Cargar Archivo", iconoAbrirRegistros);
-        // Añadir ActionListener para abrir archivo
-        itemImportarRegistros.addActionListener(e -> OpenFile.openFileAndSetText(panelBlanco));
-        JMenuItem itemGuardarArchivos = new JMenuItem("Guardar Archivo", iconoListas);
-        itemGuardarArchivos.addActionListener(e -> SaveFile.saveTextToFile(panelBlanco));
-        JMenuItem itemListaLibros = new JMenuItem("Nuevo Archivo", iconoNuevo);
-        //items reportes
-        JMenuItem itemPrestamosMismoDia = new JMenuItem("Ocurrencias de Operadores Matemáticos", iconoReportes);
-        JMenuItem itemPrestamosMora = new JMenuItem("Colores Usados", iconoReportes);
-        JMenuItem itemIngresosIntervalo = new JMenuItem("Objetos Usados", iconoReportes);
-        JMenuItem itemPrestamosPorEstudiante = new JMenuItem("Animaciones Usadas", iconoReportes);
-        JMenuItem itemPrestamosVigentesPorEstudiante = new JMenuItem("Errores de Compilación", iconoErrores);
-        //añadir al menu
-        menuRegistros.add(itemImportarRegistros);
-        menuRegistros.add(itemGuardarArchivos);
-        menuRegistros.add(itemListaLibros);
-        menuReportes.add(itemPrestamosMismoDia);
-        menuReportes.add(itemPrestamosMora);
-        menuReportes.add(itemIngresosIntervalo);
-        menuReportes.add(itemPrestamosPorEstudiante);
-        menuReportes.add(itemPrestamosVigentesPorEstudiante);
 
-        //personalizar menu
+        // Crear iconos menu
+        ImageIcon iconoAbrirArchivo = createScaledIcon("/imagenes/open_file.png", 30, 30);
+        ImageIcon iconoGuardar = createScaledIcon("/imagenes/save_file.png", 30, 30);
+        ImageIcon iconoNuevo = createScaledIcon("/imagenes/nuevo_archivo.png", 30, 30);
+        ImageIcon iconoReportes = createScaledIcon("/imagenes/reportes_icono.png", 30, 30);
+        ImageIcon iconoErrores = createScaledIcon("/imagenes/errores_logo.png", 30, 30);
+
+        JMenuItem itemAbrirAchivo = new JMenuItem("Cargar Archivo", iconoAbrirArchivo);
+        itemAbrirAchivo.addActionListener(e -> OpenFile.openFileAndSetText(panelBlanco));
+
+        JMenuItem itemGuardarArchivos = new JMenuItem("Guardar Archivo", iconoGuardar);
+        itemGuardarArchivos.addActionListener(e -> SaveFile.saveTextToFile(panelBlanco));
+
+        JMenuItem itemNuevoArchivo = new JMenuItem("Nuevo Archivo", iconoNuevo);
+        itemNuevoArchivo.addActionListener(e -> {
+            panelBlanco.setText(""); // Limpiar el JTextPane
+            JOptionPane.showMessageDialog(this, "Ya puedes escribir en tu nuevo archivo :)", "Nuevo Archivo", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        JMenuItem itemOCOpMatematicos = new JMenuItem("Ocurrencias de Operadores Matemáticos", iconoReportes);
+        JMenuItem itemColoresUsados = new JMenuItem("Colores Usados", iconoReportes);
+        JMenuItem itemObjetosUsados = new JMenuItem("Objetos Usados", iconoReportes);
+        JMenuItem itemAnimacionesUsadas = new JMenuItem("Animaciones Usadas", iconoReportes);
+        JMenuItem itemErroresDeCompilacion = new JMenuItem("Errores de Compilación", iconoErrores);
+
+        menuRegistros.add(itemAbrirAchivo);
+        menuRegistros.add(itemGuardarArchivos);
+        menuRegistros.add(itemNuevoArchivo);
+        menuReportes.add(itemOCOpMatematicos);
+        menuReportes.add(itemColoresUsados);
+        menuReportes.add(itemObjetosUsados);
+        menuReportes.add(itemAnimacionesUsadas);
+        menuReportes.add(itemErroresDeCompilacion);
+
+        // Personalizar fuente de menú
         Font menuFont = new Font("Bitstream Charter", Font.BOLD, 20);
         menuPrincipal.setFont(menuFont);
         for (int i = 0; i < menuPrincipal.getMenuCount(); i++) {
@@ -193,23 +161,14 @@ public class Principal extends javax.swing.JFrame {
                 menuItem.setFont(menuFont);
             }
         }
-
-        // Establece el diseño de la barra de menú
         menuPrincipal.setLayout(new BoxLayout(menuPrincipal, BoxLayout.X_AXIS));
-        // Establece la barra de menú en el marco
-        setJMenuBar(menuPrincipal);
     }
 
-    private void pintarPanel(Component panel) {
-        contenedorPanel.removeAll();
-        contenedorPanel.setLayout(new BorderLayout());
-        contenedorPanel.add(panel, BorderLayout.CENTER);
-        if (tamañoPanelFondo != null) {
-            panel.setPreferredSize(tamañoPanelFondo);
-        }
-        // Repintar y validar el contenedor
-        contenedorPanel.repaint();
-        contenedorPanel.revalidate();
+    private ImageIcon createScaledIcon(String path, int width, int height) {
+        ImageIcon icon = new ImageIcon(getClass().getResource(path));
+        Image image = icon.getImage();
+        Image scaledImage = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+        return new ImageIcon(scaledImage);
     }
 
     private void addMessageLabel(JMenuBar menuPrincipal) {
@@ -256,6 +215,10 @@ public class Principal extends javax.swing.JFrame {
         String fecha = formatoFecha.format(new Date());
         String hora = formatoHora.format(new Date());
         relojLabel.setText("CUNOC;" + " " + fecha + " " + hora);
+    }
+
+    public void actualizarInfoLabel(int fila, int columna) {
+        infoLabel.setText("Columna No.: " + columna + " Fila No.: " + fila);
     }
 
     /** This method is called from within the constructor to
