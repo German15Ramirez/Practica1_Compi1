@@ -5,9 +5,13 @@
 
 package source.frontend;
 
+import java_cup.runtime.*;
+import source.Lexer;
 import source.backend.herramientas.*;
+import source.sym;
 
 import java.awt.*;
+import java.io.StringReader;
 import java.text.*;
 import java.util.*;
 import javax.swing.*;
@@ -88,6 +92,21 @@ public class Principal extends javax.swing.JFrame {
         // Panel para los botones
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton botonCompilar = new JButton("Compilar");
+        botonCompilar.addActionListener(e -> {
+            String textoIngresado = panelBlanco.getText();
+            StringReader reader = new StringReader(textoIngresado);
+            Lexer lexer = new Lexer(reader);
+
+           Symbol simbolo;
+           try {
+               while ((simbolo = lexer.next_token()).sym != sym.EOF) {
+                    System.out.println("Token: " + simbolo);
+                    // Aquí podrías manejar los símbolos según lo necesites
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+           }
+        });
         JButton botonAnimar = new JButton("Animar");
         Font fuenteBotones = new Font("Bitstream Charter", Font.BOLD, 20);
         botonCompilar.setFont(fuenteBotones);
