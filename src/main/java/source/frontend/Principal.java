@@ -8,8 +8,8 @@ package source.frontend;
 import java_cup.runtime.*;
 import source.Lexer;
 import source.backend.herramientas.*;
+import source.parser;
 import source.sym;
-
 import java.awt.*;
 import java.io.StringReader;
 import java.text.*;
@@ -93,15 +93,9 @@ public class Principal extends javax.swing.JFrame {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton botonCompilar = new JButton("Compilar");
         botonCompilar.addActionListener(e -> {
-            // Obtener el texto ingresado desde el JTextPane
             String textoIngresado = panelBlanco.getText();
-
-            // Crear un StringReader para el texto
             StringReader reader = new StringReader(textoIngresado);
-
-            // Crear una instancia del lexer
             Lexer lexer = new Lexer(reader);
-
             Symbol simbolo;
             try {
                 // Leer tokens hasta encontrar EOF
@@ -113,10 +107,20 @@ public class Principal extends javax.swing.JFrame {
                     System.out.println("--------------");
                 }
             } catch (Exception ex) {
-                // Mostrar detalles del error
                 System.err.println("Error durante el análisis:");
                 ex.printStackTrace();
             }
+            parser parser = new parser(lexer);
+
+            try {
+                parser.parse();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+
+            // Si todo va bien
+            System.out.println("Análisis completado exitosamente.");
+
         });
         JButton botonAnimar = new JButton("Animar");
         Font fuenteBotones = new Font("Bitstream Charter", Font.BOLD, 20);
