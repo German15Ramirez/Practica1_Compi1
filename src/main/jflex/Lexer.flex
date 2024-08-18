@@ -1,7 +1,30 @@
 package source;
 import java_cup.runtime.*;
+import java.io.StringReader;
+import java.io.IOException;
 
 %%
+%{
+StringBuilder stringBuilder = new StringBuilder();
+
+private Symbol symbol(int type) {
+    return new Symbol(type, yyline, yycolumn);
+}
+
+private Symbol symbol(int type, Object value) {
+    return new Symbol(type, yyline, yycolumn, value);
+}
+
+// Método para realizar pruebas de análisis
+public void testLexer(String input) throws IOException {
+    yyreset(new StringReader(input));
+    Symbol token;
+    while ((token = next_token()).sym != sym.EOF) {
+        System.out.println("Token: " + token.sym + ", Valor: " + token.value);
+    }
+}
+%}
+
 %class Lexer
 %public
 %line
@@ -13,19 +36,6 @@ import java_cup.runtime.*;
     yyline = 1;
     yycolumn = 1;
 %init}
-
-%{
-StringBuffer string = new StringBuffer();
-
-private Symbol symbol(int type) {
-    return new Symbol(type, yyline, yycolumn);
-}
-
-private Symbol symbol(int type, Object value) {
-    return new Symbol(type, yyline, yycolumn, value);
-}
-%}
-
 
 WHITESPACE = [\t\n\r]+
 DIGITO = [0-9]
@@ -71,6 +81,6 @@ ID = {LETRA}({LETRA}|{DIGITO}|_)*
 "gris" { return symbol(sym.COLOR, "gris"); }
 
 . {
-    System.out.println("Error léxico: " + yytext() + ", en la línea: "
-    + yyline + ", en la columna: " + yycolumn);
+    System.out.println("Error léxico: Caracter no reconocido '" + yytext() + "' en la línea "
+    + yyline + ", columna " + yycolumn);
 }

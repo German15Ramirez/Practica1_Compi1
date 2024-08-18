@@ -93,19 +93,30 @@ public class Principal extends javax.swing.JFrame {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton botonCompilar = new JButton("Compilar");
         botonCompilar.addActionListener(e -> {
+            // Obtener el texto ingresado desde el JTextPane
             String textoIngresado = panelBlanco.getText();
+
+            // Crear un StringReader para el texto
             StringReader reader = new StringReader(textoIngresado);
+
+            // Crear una instancia del lexer
             Lexer lexer = new Lexer(reader);
 
-           Symbol simbolo;
-           try {
-               while ((simbolo = lexer.next_token()).sym != sym.EOF) {
-                    System.out.println("Token: " + simbolo);
-                    // Aquí podrías manejar los símbolos según lo necesites
+            Symbol simbolo;
+            try {
+                // Leer tokens hasta encontrar EOF
+                while ((simbolo = lexer.next_token()).sym != sym.EOF) {
+                    // Mostrar información detallada del token
+                    System.out.println("Token: " + simbolo.sym);
+                    System.out.println("Valor: " + simbolo.value);
+                    System.out.println("Línea: " + simbolo.left + ", Columna: " + simbolo.right);
+                    System.out.println("--------------");
                 }
             } catch (Exception ex) {
+                // Mostrar detalles del error
+                System.err.println("Error durante el análisis:");
                 ex.printStackTrace();
-           }
+            }
         });
         JButton botonAnimar = new JButton("Animar");
         Font fuenteBotones = new Font("Bitstream Charter", Font.BOLD, 20);

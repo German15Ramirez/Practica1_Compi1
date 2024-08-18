@@ -1,13 +1,13 @@
 package source;
-import source.frontend.modelo.*;
 import java_cup.runtime.*;
 import java.util.*;
+import source.estructura.*;
 
 terminal GRAFICAR, CIRCULO, CUADRADO, RECTANGULO, LINEA, POLIGONO, ANIMAR, OBJETO, ANTERIOR, CURVA, RECTA;
 terminal String ID, COLOR;
 terminal Double NUMERO;
-terminal String SUMA, RESTA, MULTIPLICACION, DIVISION;
-terminal String PAR_IZQ, PAR_DER, COMA;
+terminal SUMA, RESTA, MULTIPLICACION, DIVISION;
+terminal PAR_IZQ, PAR_DER, COMA;
 
 non terminal Program inicio;
 non terminal Instrucciones instrucciones;
@@ -15,7 +15,7 @@ non terminal Instruccion instruccion;
 non terminal Figura figura;
 non terminal Animacion animacion;
 non terminal Expresion expr;
-non terminal String tipoAnimacion;  // Cambiado a String para simplificar
+non terminal TipoAnimacion tipoAnimacion;  // Declaración de tipoAnimacion
 
 precedence left SUMA, RESTA;
 precedence left MULTIPLICACION, DIVISION;
@@ -30,69 +30,29 @@ instrucciones ::= instruccion
                | instrucciones instruccion
                ;
 
-instruccion ::= GRAFICAR figura {:
-    if ($2 instanceof Figura) {
-        Figura figura = (Figura) $2;
-        printFigura(figura.getTipo(), figura.getId(), figura.getColor());
-    }
-:}
-              | animacion {:
-    if ($1 instanceof Animacion) {
-        Animacion animacion = (Animacion) $1;
-        printAnimacion(animacion.getTipoAnimacion(), animacion.getParametros().toArray());
-    }
-:}
+instruccion ::= GRAFICAR figura
+              | animacion
               ;
 
-figura ::= CIRCULO PAR_IZQ ID COMA expr COMA expr COMA expr COMA COLOR PAR_DER {:
-    RESULT = new Figura("Círculo", $3, $10, Arrays.asList($5, $7, $9));
-:}
-          | CUADRADO PAR_IZQ ID COMA expr COMA expr COMA expr COMA COLOR PAR_DER {:
-    RESULT = new Figura("Cuadrado", $3, $8, Arrays.asList($5, $7, $9));
-:}
-          | RECTANGULO PAR_IZQ ID COMA expr COMA expr COMA expr COMA expr COMA COLOR PAR_DER {:
-    RESULT = new Figura("Rectángulo", $3, $10, Arrays.asList($5, $7, $9, $11));
-:}
-          | LINEA PAR_IZQ ID COMA expr COMA expr COMA expr COMA expr COMA COLOR PAR_DER {:
-    RESULT = new Figura("Línea", $3, $10, Arrays.asList($5, $7, $9, $11));
-:}
-          | POLIGONO PAR_IZQ ID COMA expr COMA expr COMA expr COMA expr COMA expr COMA COLOR PAR_DER {:
-    RESULT = new Figura("Polígono", $3, $12, Arrays.asList($5, $7, $9, $11, $13));
-:}
+figura ::= CIRCULO PAR_IZQ ID COMA expr COMA expr COMA expr COMA COLOR PAR_DER
+          | CUADRADO PAR_IZQ ID COMA expr COMA expr COMA expr COMA COLOR PAR_DER
+          | RECTANGULO PAR_IZQ ID COMA expr COMA expr COMA expr COMA expr COMA COLOR PAR_DER
+          | LINEA PAR_IZQ ID COMA expr COMA expr COMA expr COMA expr COMA COLOR PAR_DER
+          | POLIGONO PAR_IZQ ID COMA expr COMA expr COMA expr COMA expr COMA expr COMA COLOR PAR_DER
           ;
 
-animacion ::= ANIMAR OBJETO ANTERIOR PAR_IZQ tipoAnimacion COMA expr COMA expr COMA expr PAR_DER {:
-    RESULT = new Animacion($5, Arrays.asList($7, $9, $11));
-:}
+animacion ::= ANIMAR OBJETO ANTERIOR PAR_IZQ tipoAnimacion COMA expr COMA expr COMA expr PAR_DER
              ;
 
-tipoAnimacion ::= CURVA {:
-    RESULT = "Curva";
-:}
-                | RECTA {:
-    RESULT = "Recta";
-:}
+tipoAnimacion ::= CURVA
+                | RECTA
                 ;
 
-expr ::= NUMERO {:
-    RESULT = $1;
-:}
-       | ID {:
-    RESULT = $1;
-:}
-       | expr SUMA expr {:
-    RESULT = (Double) $1 + (Double) $3;
-:}
-       | expr RESTA expr {:
-    RESULT = (Double) $1 - (Double) $3;
-:}
-       | expr MULTIPLICACION expr {:
-    RESULT = (Double) $1 * (Double) $3;
-:}
-       | expr DIVISION expr {:
-    RESULT = (Double) $1 / (Double) $3;
-:}
-       | PAR_IZQ expr PAR_DER {:
-    RESULT = $2;
-:}
+expr ::= NUMERO
+       | ID
+       | expr SUMA expr
+       | expr RESTA expr
+       | expr MULTIPLICACION expr
+       | expr DIVISION expr
+       | PAR_IZQ expr PAR_DER
        ;
