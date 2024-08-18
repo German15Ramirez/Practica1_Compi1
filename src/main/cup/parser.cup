@@ -15,7 +15,7 @@ non terminal Instruccion instruccion;
 non terminal Figura figura;
 non terminal Animacion animacion;
 non terminal Expresion expr;
-non terminal TipoAnimacion tipoAnimacion;  // Declaración de tipoAnimacion
+non terminal TipoAnimacion tipoAnimacion;
 
 precedence left SUMA, RESTA;
 precedence left MULTIPLICACION, DIVISION;

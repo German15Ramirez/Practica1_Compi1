@@ -14,21 +14,13 @@ private Symbol symbol(int type) {
 private Symbol symbol(int type, Object value) {
     return new Symbol(type, yyline, yycolumn, value);
 }
-
-// Método para realizar pruebas de análisis
-public void testLexer(String input) throws IOException {
-    yyreset(new StringReader(input));
-    Symbol token;
-    while ((token = next_token()).sym != sym.EOF) {
-        System.out.println("Token: " + token.sym + ", Valor: " + token.value);
-    }
-}
 %}
 
 %class Lexer
 %public
 %line
 %column
+%ignorecase
 %cup
 %unicode
 
@@ -37,35 +29,33 @@ public void testLexer(String input) throws IOException {
     yycolumn = 1;
 %init}
 
-WHITESPACE = [\t\n\r]+
 DIGITO = [0-9]
 NUMERO = {DIGITO}+(\.{DIGITO}+)?([eE][+-]?{DIGITO}+)?
 LETRA = [a-zA-Z]
 ID = {LETRA}({LETRA}|{DIGITO}|_)*
 
 %%
+"," { return symbol(sym.COMA, yytext()); }
+[ \t\n\r]+ {/* Ignorar espacios en blanco */}
+"graficar" { return symbol(sym.GRAFICAR, yytext()); }
+"circulo" { return symbol(sym.CIRCULO, yytext()); }
+"cuadrado" { return symbol(sym.CUADRADO, yytext()); }
+"rectangulo" { return symbol(sym.RECTANGULO, yytext()); }
+"linea" { return symbol(sym.LINEA, yytext()); }
+"poligono" { return symbol(sym.POLIGONO, yytext()); }
+"animar" { return symbol(sym.ANIMAR, yytext()); }
+"objeto" { return symbol(sym.OBJETO, yytext()); }
+"anterior" { return symbol(sym.ANTERIOR, yytext()); }
+"curva" { return symbol(sym.CURVA, yytext()); }
+"recta" { return symbol(sym.RECTA, yytext()); }
 
-{WHITESPACE} {}
-"graficar" { return symbol(sym.GRAFICAR); }
-"circulo" { return symbol(sym.CIRCULO); }
-"cuadrado" { return symbol(sym.CUADRADO); }
-"rectangulo" { return symbol(sym.RECTANGULO); }
-"linea" { return symbol(sym.LINEA); }
-"poligono" { return symbol(sym.POLIGONO); }
-"animar" { return symbol(sym.ANIMAR); }
-"objeto" { return symbol(sym.OBJETO); }
-"anterior" { return symbol(sym.ANTERIOR); }
-"curva" { return symbol(sym.CURVA); }
-"recta" { return symbol(sym.RECTA); }
+"(" { return symbol(sym.PAR_IZQ, yytext()); }
+")" { return symbol(sym.PAR_DER, yytext()); }
 
-"," { return symbol(sym.COMA); }
-"(" { return symbol(sym.PAR_IZQ); }
-")" { return symbol(sym.PAR_DER); }
-
-"+" { return symbol(sym.SUMA); }
-"-" { return symbol(sym.RESTA); }
-"*" { return symbol(sym.MULTIPLICACION); }
-"/" { return symbol(sym.DIVISION); }
+"+" { return symbol(sym.SUMA, yytext()); }
+"-" { return symbol(sym.RESTA, yytext()); }
+"*" { return symbol(sym.MULTIPLICACION, yytext()); }
+"/" { return symbol(sym.DIVISION, yytext()); }
 
 {ID} { return symbol(sym.ID, yytext()); }
 {NUMERO} { return symbol(sym.NUMERO, Double.parseDouble(yytext())); }
@@ -81,6 +71,10 @@ ID = {LETRA}({LETRA}|{DIGITO}|_)*
 "gris" { return symbol(sym.COLOR, "gris"); }
 
 . {
-    System.out.println("Error léxico: Caracter no reconocido '" + yytext() + "' en la línea "
+    // Imprimir el mensaje de error léxico
+    System.out.println("Error léxico: Caracter no reconocido '" + yytext() + "' en la fila "
     + yyline + ", columna " + yycolumn);
+
+    // Imprimir la línea de separación
+    System.out.println("--------------");
 }
