@@ -73,3 +73,5 @@ ID = [a-zA-Z_][a-zA-Z0-9_]*[a-zA-Z0-9-]*
                      errores.add(new Errores(yytext(), yyline + 1, yycolumn + 1, "Léxico", "Caracter desconocido: " + yytext()));
                      System.err.println("Error léxico: " + yytext() + " linea: " + String.valueOf(yyline + 1) + " columna: " + String.valueOf(yycolumn + 1));
                  }
+
+                 

@@ -9,12 +9,14 @@ import java_cup.runtime.*;
 import source.Lexer;
 import source.backend.OpenFile;
 import source.backend.herramientas.*;
+import source.frontend.PanelReporte.OcurrenciaOperadoresMatematicos;
 import source.parser;
 import source.sym;
 import java.awt.*;
 import java.io.StringReader;
 import java.text.*;
 import java.util.*;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.text.html.parser.Parser;
 
@@ -36,12 +38,15 @@ public class Principal extends javax.swing.JFrame {
     private Numeracion numeracion;
     private JLabel infoLabel;
     private JLabel labelInferiorIzquierda;
+    private OcurrenciaOperadoresMatematicos ocurrenciaOperadoresMatematicos;
+
 
     /** Creates new form Principal */
     public Principal() {
         initComponents();
         initUI();
         iniciarReloj();
+        ocurrenciaOperadoresMatematicos = new OcurrenciaOperadoresMatematicos();
     }
 
     private void initUI() {
@@ -99,19 +104,10 @@ public class Principal extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "No hay nada por analizar.\nPor favor escriba algo en el editor de texto", "Editor vacío", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 try {
-                    // Crear una instancia del lexer con el contenido del JTextPane
                     Lexer lexer = new Lexer(new StringReader(panelBlanco.getText()));
-
-                    // Crear una instancia del parser con el lexer
                     parser parser = new parser(lexer);
-
-                    // Ejecutar el análisis del parser
                     parser.parse();
-
-                    // Si quieres manejar resultados específicos, puedes hacerlo aquí
-
                 } catch (Exception ex) {
-                    // Mostrar el mensaje de error en caso de excepción
                     JOptionPane.showMessageDialog(this, "Error al ejecutar el análisis: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     ex.printStackTrace();
                 }
@@ -165,6 +161,20 @@ public class Principal extends javax.swing.JFrame {
         });
 
         JMenuItem itemOCOpMatematicos = new JMenuItem("Ocurrencias de Operadores Matemáticos", iconoReportes);
+        itemOCOpMatematicos.addActionListener(e -> {
+            // Crear el panel
+            OcurrenciaOperadoresMatematicos panel = new OcurrenciaOperadoresMatematicos();
+
+            // Crear un JDialog
+            JDialog dialog = new JDialog(this, "Ocurrencias de Operadores Matemáticos", true);
+            dialog.setLayout(new BorderLayout());
+            dialog.add(panel, BorderLayout.CENTER);
+
+            // Configuración del JDialog
+            dialog.setSize(600, 400); // Ajusta el tamaño según sea necesario
+            dialog.setLocationRelativeTo(this); // Centra el diálogo en la ventana principal
+            dialog.setVisible(true); // Muestra el diálogo
+        });
         JMenuItem itemColoresUsados = new JMenuItem("Colores Usados", iconoReportes);
         JMenuItem itemObjetosUsados = new JMenuItem("Objetos Usados", iconoReportes);
         JMenuItem itemAnimacionesUsadas = new JMenuItem("Animaciones Usadas", iconoReportes);
@@ -282,7 +292,7 @@ public class Principal extends javax.swing.JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {

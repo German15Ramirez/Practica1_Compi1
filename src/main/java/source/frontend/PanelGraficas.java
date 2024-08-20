@@ -9,7 +9,10 @@ import com.itextpdf.text.pdf.PdfWriter;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,10 +30,46 @@ public class PanelGraficas extends JPanel {
     private static final Color COLOR_NARANJA = new Color(197, 132, 17);
 
     private List<Figura> listaFiguras;
+    private JButton btnExportar;
 
     public PanelGraficas() {
+        setLayout(new BorderLayout());
         setBackground(Color.WHITE);
-        setBorder(BorderFactory.createLineBorder(Color.BLACK, 2)); // Agrega un borde negro
+        setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+
+        // Crear el botón Exportar
+        btnExportar = new JButton("Exportar");
+        btnExportar.setPreferredSize(new Dimension(200, 40)); // Ocupa más espacio en la barra inferior
+        btnExportar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mostrarMenuExportar();
+            }
+        });
+
+        JPanel panelBotones = new JPanel();
+        panelBotones.setLayout(new BorderLayout());
+        panelBotones.add(btnExportar, BorderLayout.CENTER);
+
+        add(panelBotones, BorderLayout.SOUTH);
+    }
+
+    private void mostrarMenuExportar() {
+        Object[] options = {"Guardar como PNG", "Guardar como PDF"};
+        int choice = JOptionPane.showOptionDialog(this,
+                "Selecciona el formato para guardar",
+                "Guardar como",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                options,
+                options[0]);
+
+        if (choice == 0) {
+            guardarComoPNG();
+        } else if (choice == 1) {
+            guardarComoPDF();
+        }
     }
 
     public List<Figura> getListaFiguras() {
@@ -142,6 +181,7 @@ public class PanelGraficas extends JPanel {
 
             try {
                 ImageIO.write(image, "PNG", fileToSave);
+                JOptionPane.showMessageDialog(this, "Archivo PNG guardado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Error al guardar el archivo PNG: " + ex.getMessage(),
                         "Error", JOptionPane.ERROR_MESSAGE);
@@ -160,23 +200,36 @@ public class PanelGraficas extends JPanel {
                 fileToSave = new File(fileToSave.getAbsolutePath() + ".pdf");
             }
 
+            // Crear un BufferedImage con el tamaño del panel
             BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = image.createGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             paint(g2d);
             g2d.dispose();
 
-            Document document = new Document();
+            // Guardar la imagen como PDF
             try {
+                Document document = new Document(new com.itextpdf.text.Rectangle(getWidth(), getHeight()));
                 PdfWriter.getInstance(document, new FileOutputStream(fileToSave));
                 document.open();
-                Image pdfImage = Image.getInstance(image, null);
+                Image pdfImage = Image.getInstance(imageToByteArray(image));
+                pdfImage.setAbsolutePosition(0, 0);
+                pdfImage.scaleToFit(getWidth(), getHeight());
                 document.add(pdfImage);
+                document.close();
+                JOptionPane.showMessageDialog(this, "Archivo PDF guardado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             } catch (DocumentException | IOException ex) {
                 JOptionPane.showMessageDialog(this, "Error al guardar el archivo PDF: " + ex.getMessage(),
                         "Error", JOptionPane.ERROR_MESSAGE);
-            } finally {
-                document.close();
             }
+        }
+    }
+
+    private byte[] imageToByteArray(BufferedImage image) throws IOException {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            ImageIO.write(image, "png", baos);
+            return baos.toByteArray();
         }
     }
 }

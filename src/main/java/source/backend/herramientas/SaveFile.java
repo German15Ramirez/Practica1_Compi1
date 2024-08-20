@@ -26,6 +26,7 @@ public class SaveFile {
             }
             try {
                 saveTextToFile(selectedFile, jTextPane.getText());
+                JOptionPane.showMessageDialog(null, "Archivo guardado exitosamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             } catch (IOException e) {
                 handleFileSaveError(e);
             }

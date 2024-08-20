@@ -27,20 +27,8 @@ action code {:
 
         panelGraficas.setListaFiguras(listaObjetosList);
         ventana.setContentPane(panelGraficas);
-        ventana.setSize(800, 600);
+        ventana.setSize(900, 900);
         ventana.setLocationRelativeTo(null);
-
-        JButton guardarPNGButton = new JButton("Guardar como PNG");
-        guardarPNGButton.addActionListener(e -> panelGraficas.guardarComoPNG());
-        JButton guardarPDFButton = new JButton("Guardar como PDF");
-        guardarPDFButton.addActionListener(e -> panelGraficas.guardarComoPDF());
-
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        panelBotones.setBackground(Color.GRAY);
-        panelBotones.add(guardarPNGButton);
-        panelBotones.add(guardarPDFButton);
-
-        ventana.add(panelBotones, BorderLayout.SOUTH);
         ventana.setVisible(true);
         ventana.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
@@ -94,8 +82,11 @@ instruccion ::= GRAFICAR forma {: ultimaFigura = (Figura) RESULT; :}
 forma ::= CIRCULO PAR_IZQ ID:id COMA expresion:posicionX COMA expresion:posicionY COMA expresion:radio COMA color:col PAR_DER {:
     listaObjetosList.add(new Circulo(id, (Double)posicionX, (Double)posicionY, (Double)radio, (String)col));
 :}
-        | CUADRADO PAR_IZQ ID:id COMA expresion:posicionX COMA expresion:posicionY COMA expresion:tamanio COMA color:col PAR_DER {:
-    listaObjetosList.add(new Cuadrado(id, (Double)posicionX, (Double)posicionY, (Double)tamanio, (String)col));
+        | CUADRADO PAR_IZQ ID:id COMA expresion:posicionX COMA expresion:posicionY COMA expresion:tamano COMA color:col PAR_DER {:
+    listaObjetosList.add(new Cuadrado(id, (Double)posicionX, (Double)posicionY, (Double)tamano, (String)col));
+:}
+        | RECTANGULO PAR_IZQ ID:id COMA expresion:posicionX COMA expresion:posicionY COMA expresion:ancho COMA expresion:alto COMA color:col PAR_DER {:
+    listaObjetosList.add(new Rectangulo(id, (Double)posicionX, (Double)posicionY, (Double)ancho,(Double)alto, (String)col));
 :}
         | LINEA_OBJ PAR_IZQ ID:id COMA expresion:inicialX COMA expresion:inicialY COMA expresion:finalX COMA expresion:finalY COMA color:col PAR_DER {:
     listaObjetosList.add(new Linea(id, (Double)inicialX, (Double)inicialY, (Double)finalX, (Double)finalY, (String)col));
