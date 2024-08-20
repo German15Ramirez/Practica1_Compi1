@@ -7,6 +7,7 @@ package source.frontend;
 
 import java_cup.runtime.*;
 import source.Lexer;
+import source.backend.OpenFile;
 import source.backend.herramientas.*;
 import source.parser;
 import source.sym;
@@ -15,6 +16,7 @@ import java.io.StringReader;
 import java.text.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.text.html.parser.Parser;
 
 
 /**
@@ -93,36 +95,29 @@ public class Principal extends javax.swing.JFrame {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton botonCompilar = new JButton("Compilar");
         botonCompilar.addActionListener(e -> {
-            String textoIngresado = panelBlanco.getText();
-            StringReader reader = new StringReader(textoIngresado);
-            Lexer lexer = new Lexer(reader);
-            Symbol simbolo;
-            try {
-                // Leer tokens hasta encontrar EOF
-                while ((simbolo = lexer.next_token()).sym != sym.EOF) {
-                    // Mostrar información detallada del token
-                    System.out.println("Token: " + simbolo.sym);
-                    System.out.println("Valor: " + simbolo.value);
-                    System.out.println("Línea: " + simbolo.left + ", Columna: " + simbolo.right);
-                    System.out.println("--------------");
+            if (panelBlanco.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No hay nada por analizar.\nPor favor escriba algo en el editor de texto", "Editor vacío", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                try {
+                    // Crear una instancia del lexer con el contenido del JTextPane
+                    Lexer lexer = new Lexer(new StringReader(panelBlanco.getText()));
+
+                    // Crear una instancia del parser con el lexer
+                    parser parser = new parser(lexer);
+
+                    // Ejecutar el análisis del parser
+                    parser.parse();
+
+                    // Si quieres manejar resultados específicos, puedes hacerlo aquí
+
+                } catch (Exception ex) {
+                    // Mostrar el mensaje de error en caso de excepción
+                    JOptionPane.showMessageDialog(this, "Error al ejecutar el análisis: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
                 }
-            } catch (Exception ex) {
-                System.err.println("Error durante el análisis:");
-                ex.printStackTrace();
             }
-            parser parser = new parser(lexer);
-
-            try {
-                parser.parse();
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
-
-            // Si todo va bien
-            System.out.println("Análisis completado exitosamente.");
-
         });
-        JButton botonAnimar = new JButton("Animar");
+                JButton botonAnimar = new JButton("Animar");
         Font fuenteBotones = new Font("Bitstream Charter", Font.BOLD, 20);
         botonCompilar.setFont(fuenteBotones);
         botonAnimar.setFont(fuenteBotones);

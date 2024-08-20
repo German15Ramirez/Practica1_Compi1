@@ -1,58 +1,133 @@
 package source;
 import java_cup.runtime.*;
-import java.util.*;
-import source.estructura.*;
+import java.util.List;
+import java.util.LinkedList;
+import source.frontend.graficar.*;
+import source.frontend.PanelGraficas;
+import source.backend.Reportes.*;
+import source.backend.Figuras.*;
+import javax.swing.*;
+import java.awt.*;
+import source.Lexer;
 
-terminal GRAFICAR, CIRCULO, CUADRADO, RECTANGULO, LINEA, POLIGONO, ANIMAR, OBJETO, ANTERIOR, CURVA, RECTA;
-terminal String ID, COLOR;
-terminal Double NUMERO;
-terminal SUMA, RESTA, MULTIPLICACION, DIVISION;
-terminal PAR_IZQ, PAR_DER, COMA;
+action code {:
 
-non terminal Program inicio;
-non terminal Instrucciones instrucciones;
-non terminal Instruccion instruccion;
-non terminal Figura figura;
-non terminal Animacion animacion;
-non terminal Expresion expr;
-non terminal TipoAnimacion tipoAnimacion;
+    private Figura ultimaFigura = null;
+    public List<Figura> listaObjetosList = new LinkedList<>();
+
+    public List<Figura> getListaObjetosList() {
+        return listaObjetosList;
+    }
+
+
+
+    public void graficar() {
+        JFrame ventana = new JFrame("Figuras generadas");
+        PanelGraficas panelGraficas = new PanelGraficas();
+
+        panelGraficas.setListaFiguras(listaObjetosList);
+        ventana.setContentPane(panelGraficas);
+        ventana.setSize(800, 600);
+        ventana.setLocationRelativeTo(null);
+
+        JButton guardarPNGButton = new JButton("Guardar como PNG");
+        guardarPNGButton.addActionListener(e -> panelGraficas.guardarComoPNG());
+        JButton guardarPDFButton = new JButton("Guardar como PDF");
+        guardarPDFButton.addActionListener(e -> panelGraficas.guardarComoPDF());
+
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panelBotones.setBackground(Color.GRAY);
+        panelBotones.add(guardarPNGButton);
+        panelBotones.add(guardarPDFButton);
+
+        ventana.add(panelBotones, BorderLayout.SOUTH);
+        ventana.setVisible(true);
+        ventana.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    }
+
+    public void animar(String animacion) {
+        if ((listaObjetosList.size() - 1) > 0 ) {
+            ultimaFigura = listaObjetosList.get(listaObjetosList.size() - 1);
+        }
+
+        if (!listaObjetosList.isEmpty()) {
+            String tipoFigura = ultimaFigura.getClass().getSimpleName();
+            String tipoAnimacion = animacion.equals("curva") ? "curva" : "línea";
+            System.out.println("moviendo " + tipoFigura.toLowerCase() + " en " + tipoAnimacion);
+        }
+
+        if (ultimaFigura == null) {
+            System.out.println("No hay figura para animar.");
+            return;
+        }
+    }
+
+:}
+
+terminal PAR_IZQ, PAR_DER, COMA, AZUL, ROJO, AMARILLO, VERDE,
+NEGRO, LILA, CAFE, NARANJA, GRIS, LINEA, CURVA, GRAFICAR, CIRCULO, CUADRADO, RECTANGULO, LINEA_OBJ, POLIGONO, ANIMAR,
+OBJETO, ANTERIOR, NUMERO;
+terminal String ID;
+terminal Double SUMA, RESTA, MULTIPLICACION, DIVISION;
+
+non terminal programa, instruccion, animar, forma, color, tipoanimacion, inicial, errorSintactico;
+non terminal Double expresion;
 
 precedence left SUMA, RESTA;
 precedence left MULTIPLICACION, DIVISION;
 
-start with inicio;
+start with inicial;
 
-inicio ::= instrucciones
-        | /* vacío */
-        ;
+inicial ::= programa;
 
-instrucciones ::= instruccion
-               | instrucciones instruccion
-               ;
+/* Programa con múltiples instrucciones */
+programa ::= instruccion programa
+           | error:err {: report_error("Error en el comando", err); :}
+           | ID:err {: report_error("Se espera \"graficar\" o \"animar\"", err); :}
+           | /*EOF*/ {: graficar(); :};
 
-instruccion ::= GRAFICAR figura
-              | animacion
-              ;
+/* Instrucciones válidas */
+instruccion ::= GRAFICAR forma {: ultimaFigura = (Figura) RESULT; :}
+              | ANIMAR OBJETO ANTERIOR animar;
 
-figura ::= CIRCULO PAR_IZQ ID COMA expr COMA expr COMA expr COMA COLOR PAR_DER
-          | CUADRADO PAR_IZQ ID COMA expr COMA expr COMA expr COMA COLOR PAR_DER
-          | RECTANGULO PAR_IZQ ID COMA expr COMA expr COMA expr COMA expr COMA COLOR PAR_DER
-          | LINEA PAR_IZQ ID COMA expr COMA expr COMA expr COMA expr COMA COLOR PAR_DER
-          | POLIGONO PAR_IZQ ID COMA expr COMA expr COMA expr COMA expr COMA expr COMA COLOR PAR_DER
-          ;
+/* Formas existentes */
+forma ::= CIRCULO PAR_IZQ ID:id COMA expresion:posicionX COMA expresion:posicionY COMA expresion:radio COMA color:col PAR_DER {:
+    listaObjetosList.add(new Circulo(id, (Double)posicionX, (Double)posicionY, (Double)radio, (String)col));
+:}
+        | CUADRADO PAR_IZQ ID:id COMA expresion:posicionX COMA expresion:posicionY COMA expresion:tamanio COMA color:col PAR_DER {:
+    listaObjetosList.add(new Cuadrado(id, (Double)posicionX, (Double)posicionY, (Double)tamanio, (String)col));
+:}
+        | LINEA_OBJ PAR_IZQ ID:id COMA expresion:inicialX COMA expresion:inicialY COMA expresion:finalX COMA expresion:finalY COMA color:col PAR_DER {:
+    listaObjetosList.add(new Linea(id, (Double)inicialX, (Double)inicialY, (Double)finalX, (Double)finalY, (String)col));
+:}
+        | POLIGONO PAR_IZQ ID:id COMA expresion:posicionX COMA expresion:posicionY COMA expresion:cantLados COMA expresion:ancho COMA expresion:alto COMA color:col PAR_DER {:
+    listaObjetosList.add(new Poligono(id, (Double)posicionX, (Double)posicionY, (Integer)((Double)cantLados).intValue(), (Double)ancho, (Double)alto, (String)col));
+:}
+        | error:err {: report_error("Error al graficar", err); :};
 
-animacion ::= ANIMAR OBJETO ANTERIOR PAR_IZQ tipoAnimacion COMA expr COMA expr COMA expr PAR_DER
-             ;
+/* Colores disponibles */
+color ::= AZUL    {: RESULT = "azul"; :}
+        | ROJO    {: RESULT = "rojo"; :}
+        | AMARILLO {: RESULT = "amarillo"; :}
+        | VERDE   {: RESULT = "verde"; :}
+        | NEGRO   {: RESULT = "negro"; :}
+        | LILA {: RESULT = "lila"; :}
+        | CAFE  {: RESULT = "cafe"; :}
+        | NARANJA  {: RESULT = "naranja"; :}
+        | GRIS  {: RESULT = "gris"; :};
 
-tipoAnimacion ::= CURVA
-                | RECTA
-                ;
+/* Animación de objeto */
+animar ::= PAR_IZQ tipoanimacion:animacion COMA expresion COMA expresion COMA expresion PAR_DER {: animar(String.valueOf(animacion)); :};
 
-expr ::= NUMERO
-       | ID
-       | expr SUMA expr
-       | expr RESTA expr
-       | expr MULTIPLICACION expr
-       | expr DIVISION expr
-       | PAR_IZQ expr PAR_DER
-       ;
+/* Tipos de animación */
+tipoanimacion ::= CURVA {: RESULT = "curva"; :}
+                | LINEA {: RESULT = "línea"; :}
+                | error:err {: report_error("Se esperaba curva o línea", err); :};
+
+/* Expresiones aritméticas */
+expresion ::= expresion:e1 SUMA expresion:e2                 {: RESULT = ((Number)e1).doubleValue() + ((Number)e2).doubleValue(); :}
+             | expresion:e1 RESTA expresion:e2               {: RESULT = ((Number)e1).doubleValue() - ((Number)e2).doubleValue(); :}
+             | expresion:e1 MULTIPLICACION expresion:e2      {: RESULT = ((Number)e1).doubleValue() * ((Number)e2).doubleValue(); :}
+             | expresion:e1 DIVISION expresion:e2            {: RESULT = ((Number)e1).doubleValue() / ((Number)e2).doubleValue(); :}
+             | PAR_IZQ expresion:e PAR_DER {: RESULT = ((Number)e).doubleValue(); :}
+             | NUMERO:n                                      {: RESULT = ((Number)n).doubleValue(); :};
